@@ -1,48 +1,49 @@
 const readline = require('readline');
-class ValidaCPF {
-    constructor(cpfEnviado) {
-        Object.defineProperty(this, 'cpfLimpo', {
+
+class ValidateCPF {
+    constructor(submittedCPF) {
+        Object.defineProperty(this, 'cleanCPF', {
             writable: false,
             enumerable: false,
             configurable: false,
-            value: cpfEnviado.replace(/\D+/g, '')
+            value: submittedCPF.replace(/\D+/g, '')
         });
     }
 
     isSequence() {
-        if(!this.cpfLimpo || this.cpfLimpo.length === 0) return false;
-        return this.cpfLimpo[0].repeat(this.cpfLimpo.length) === this.cpfLimpo;
+        if (!this.cleanCPF || this.cleanCPF.length === 0) return false;
+        return this.cleanCPF[0].repeat(this.cleanCPF.length) === this.cleanCPF;
     }
 
-    static geraDigito(cpfSemDigitos) {
+    static generateDigit(cpfWithoutDigits) {
         let total = 0;
-        let regressivo = cpfSemDigitos.length + 1;
+        let regressiveCounter = cpfWithoutDigits.length + 1;
 
-        for (let stgNum of cpfSemDigitos) {
-            total += regressivo * Number(stgNum);
-            regressivo--;
+        for (let stgNum of cpfWithoutDigits) {
+            total += regressiveCounter * Number(stgNum);
+            regressiveCounter--;
         }
 
-        const digito = 11 - (total % 11);
+        const digit = 11 - (total % 11);
 
-        return digito <= 9 ? String(digito) : '0';
+        return digit <= 9 ? String(digit) : '0';
     }
 
-    geraNovoCPF() {
-        const cpfSemDigitos = this.cpfLimpo.slice(0, -2);
-        const digito1 = ValidaCPF.geraDigito(cpfSemDigitos);
-        const digito2 = ValidaCPF.geraDigito(cpfSemDigitos + digito1);
-        return (cpfSemDigitos + digito1 + digito2);
+    generateNewCPF() {
+        const cpfWithoutDigits = this.cleanCPF.slice(0, -2);
+        const digit1 = ValidateCPF.generateDigit(cpfWithoutDigits);
+        const digit2 = ValidateCPF.generateDigit(cpfWithoutDigits + digit1);
+        return (cpfWithoutDigits + digit1 + digit2);
     }
 
-    valida() {
-        if (!this.cpfLimpo) return false;
-        if (typeof this.cpfLimpo !== 'string') return false;
-        if (this.cpfLimpo.length !== 11) return false;
+    validate() {
+        if (!this.cleanCPF) return false;
+        if (typeof this.cleanCPF !== 'string') return false;
+        if (this.cleanCPF.length !== 11) return false;
         if (this.isSequence()) return false;
-        const novoCPF = this.geraNovoCPF();
+        const newCPF = this.generateNewCPF();
 
-        return novoCPF === this.cpfLimpo;
+        return newCPF === this.cleanCPF;
     }
 }
 
@@ -51,25 +52,25 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-function perguntarCPF() {
-    rl.question('Digite o CPF para validar (ou "sair" para fechar): ', (cpfInput) => {
-        if (cpfInput.toLowerCase() === 'sair') {
-            console.log('Até logo!');
+function askForCPF() {
+    rl.question('Enter CPF to validate (or "exit" to quit): ', (cpfInput) => {
+        if (cpfInput.toLowerCase() === 'exit') {
+            console.log('Goodbye!');
             rl.close();
             return;
         }
 
-        const cpf = new ValidaCPF(cpfInput);
+        const cpf = new ValidateCPF(cpfInput);
 
-        if (cpf.valida()) {
-            console.log(`-> O CPF "${cpfInput}" é VÁLIDO.\n`);
+        if (cpf.validate()) {
+            console.log(`-> The CPF "${cpfInput}" is VALID.\n`);
         } else {
-            console.log(`-> O CPF "${cpfInput}" é INVÁLIDO.\n`);
+            console.log(`-> The CPF "${cpfInput}" is INVALID.\n`);
         }
 
-        perguntarCPF();
+        askForCPF();
     });
 }
 
-console.log('=== Validador de CPF ===');
-perguntarCPF();
+console.log('=== CPF Validator ===');
+askForCPF();

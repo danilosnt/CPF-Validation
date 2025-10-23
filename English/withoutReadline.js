@@ -1,48 +1,51 @@
-function ValidaCPF(cpfEnviado) {
-    Object.defineProperty(this, 'cpfLimpo', {
+function ValidateCPF(submittedCPF) {
+    Object.defineProperty(this, 'cleanCPF', {
         enumerable: true,
-        get: function(){
-            return cpfEnviado.replace(/\D+/g, '');
+        get: function () {
+            return submittedCPF.replace(/\D+/g, '');
         }
     })
 }
 
-ValidaCPF.prototype.valida = function(){
-    if(typeof this.cpfLimpo === undefined) return false;
-    if(this.cpfLimpo.length !== 11) return false;
-    if(this.isSequencia()) return false;
+ValidateCPF.prototype.validate = function () {
+    if (typeof this.cleanCPF === undefined) return false;
+    if (this.cleanCPF.length !== 11) return false;
+    if (this.isSequence()) return false;
+    const partialCPF = this.cleanCPF.slice(0, -2);
+    const digit1 = this.createDigit(partialCPF);
+    const digit2 = this.createDigit(partialCPF + digit1);
 
-    const cpfParcial = this.cpfLimpo.slice(0, -2);
-    const digito1 = this.criaDigito(cpfParcial);
-    const digito2 = this.criaDigito(cpfParcial + digito1);
-    
-    const novoCPF = cpfParcial + digito1 + digito2;
+    const newCPF = partialCPF + digit1 + digit2;
 
-    return novoCPF === this.cpfLimpo;
+    return newCPF === this.cleanCPF;
 };
-ValidaCPF.prototype.criaDigito = function(cpfParcial){
-    const cpfArray = Array.from(cpfParcial);
-    
-    let regressivo = cpfArray.length + 1;
-    const total = cpfArray.reduce((ac, val) => {
-        console.log(`A: ${ac} | v: ${val} | r: ${regressivo}`)
-        ac += (regressivo * Number(val));
-        regressivo--;
-        return ac;
+
+ValidateCPF.prototype.createDigit = function (partialCPF) {
+    const cpfArray = Array.from(partialCPF);
+
+    let regressiveCounter = cpfArray.length + 1;
+    const total = cpfArray.reduce((acc, val) => {
+        console.log(`Acc: ${acc} | Val: ${val} | Reg: ${regressiveCounter}`)
+        acc += (regressiveCounter * Number(val));
+        regressiveCounter--;
+        return acc;
     }, 0);
 
     console.log(total)
     console.log(total % 11)
 
-    const digito = (11 - (total % 11));
-    return (digito > 9) ? '0' : String(digito); 
+    const digit = (11 - (total % 11));
+    return (digit > 9) ? '0' : String(digit);
 };
-ValidaCPF.prototype.isSequencia = function(){
-    return this.cpfLimpo[0].repeat(this.cpfLimpo.length) === this.cpfLimpo;
+
+ValidateCPF.prototype.isSequence = function () {
+    if (!this.cleanCPF || this.cleanCPF.length === 0) return false;
+    return this.cleanCPF[0].repeat(this.cleanCPF.length) === this.cleanCPF;
 }
-const cpf = new ValidaCPF('000.000.000-00');
-if(cpf.valida()){
-    console.log('CPF válido');
-}else{
-    console.log('CPF inválido');
+
+const cpf = new ValidateCPF('000.000.000-00');
+if (cpf.validate()) {
+    console.log('Valid CPF');
+} else {
+    console.log('Invalid CPF');
 }
